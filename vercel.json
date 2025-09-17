@@ -15,7 +15,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "frame-ancestors https://*.softr.app https://*.softr.io https://your-portal.example.com;"
+          "value": "frame-ancestors *;"
         }
       ]
     }
