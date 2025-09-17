@@ -1,12 +1,20 @@
 {
+  "version": 2,
   "buildCommand": "cd Frontend && npm run build",
   "outputDirectory": "Frontend/dist",
   "installCommand": "cd Frontend && npm install",
   "framework": "vite",
-  "rewrites": [
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
+  "headers": [
     {
       "source": "/(.*)",
-      "destination": "/index.html"
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "frame-ancestors 'self' https://*.softr.app https://*.softr.io https://*.startupsquad.in https://*.vercel.app;"
+        },
+        { "key": "Cross-Origin-Resource-Policy", "value": "cross-origin" }
+      ]
     }
   ]
 }
