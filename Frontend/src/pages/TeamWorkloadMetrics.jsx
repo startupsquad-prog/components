@@ -9,6 +9,11 @@ export default function TeamWorkloadMetrics() {
   // 🔑 Airtable ENV
   const apiKey = import.meta.env.VITE_AIRTABLE_API_KEY;
   const baseId = import.meta.env.VITE_AIRTABLE_BASE_ID2;
+  
+  // Check if environment variables are set
+  if (!apiKey || !baseId) {
+    console.error('Missing Airtable environment variables');
+  }
 
   // 📊 Config
   const tables = {
@@ -55,6 +60,14 @@ export default function TeamWorkloadMetrics() {
   const runMetrics = async () => {
     setLoading(true);
     setError(null);
+    
+    // Check environment variables first
+    if (!apiKey || !baseId) {
+      setError('Airtable configuration missing. Please check environment variables.');
+      setLoading(false);
+      return;
+    }
+    
     try {
       const deptFilter = encodeURIComponent(
         `({${fields.deptName}} = '${targetDept}')`
@@ -64,7 +77,7 @@ export default function TeamWorkloadMetrics() {
         [fields.deptName],
         deptFilter
       );
-      if (!dept.length) throw new Error(`No department '${targetDept}'`);
+      if (!dept.length) throw new Error(`No department '${targetDept}' found`);
       const deptId = dept[0].id;
 
       const employees = await fetchAirtable(tables.employees, [
@@ -135,12 +148,27 @@ export default function TeamWorkloadMetrics() {
         </div>
       </div>
 
-      {error && <p className="text-red-600">{error}</p>}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <p className="text-red-600 font-medium">Error: {error}</p>
+          <p className="text-red-500 text-sm mt-1">
+            Please check your Airtable configuration or contact support.
+          </p>
+        </div>
+      )}
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {loading
-          ? "Loading..."
-          : employees.map((emp, i) => {
+        {loading ? (
+          <div className="col-span-full text-center py-8">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p className="mt-2 text-gray-600">Loading team data...</p>
+          </div>
+        ) : employees.length === 0 ? (
+          <div className="col-span-full text-center py-8">
+            <p className="text-gray-500">No team data available</p>
+          </div>
+        ) : (
+          employees.map((emp, i) => {
               const p = (c) => (emp.total ? (c / emp.total) * 100 : 0);
               return (
                 <motion.div
@@ -194,7 +222,8 @@ export default function TeamWorkloadMetrics() {
                   ))}
                 </motion.div>
               );
-            })}
+            })
+        )}
       </div>
     </div>
   );
